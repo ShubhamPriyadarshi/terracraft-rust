@@ -1,18 +1,13 @@
 use bevy::prelude::*;
 
 pub fn spawn_hud(mut commands: Commands) {
+    // Spawn a 2D camera for UI
     commands.spawn((
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(0.0),
-            bottom: Val::Px(0.0),
-            left: Val::Px(0.0),
-            right: Val::Px(0.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
+        Camera2d::default(),
+        Camera {
+            order: 1000,
             ..default()
         },
-        BackgroundColor(Color::BLACK.with_alpha(0.3)),
     ));
 }
 
