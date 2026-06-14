@@ -45,10 +45,16 @@ fn main() {
             ui::spawn_hud,
             rendering::setup_lighting,
         ))
-        .add_systems(Update, (player::player_movement, player::camera_control))
-        .add_systems(Update, (world::block_interaction, mob::mob_spawner))
-        .add_systems(Update, (mob::mob_ai,))
-        .add_systems(Update, (ui::update_hud, world::day_night_cycle))
+        .add_systems(Update, (
+            player::player_movement,
+            player::camera_control,
+            world::block_interaction,
+            mob::mob_spawner,
+            mob::mob_ai,
+            ui::update_hud,
+            world::day_night_cycle,
+            debug_logging,
+        ))
         .run();
 }
 
@@ -57,11 +63,15 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Spawn a ground plane
-    commands.spawn(PbrEntity {
-        mesh: meshes.add(Rectangle::new(256.0, 256.0)),
-        material: materials.add(Color::srgb(0.2, 0.5, 0.2)),
-    });
+    // Spawn a ground plane - rotated to lie flat on the ground (XZ plane)
+    // Rectangle defaults to XY plane, so we rotate it -90 degrees on X to make it horizontal
+    commands.spawn((
+        PbrEntity {
+            mesh: meshes.add(Rectangle::new(256.0, 256.0)),
+            material: materials.add(Color::srgb(0.2, 0.5, 0.2)),
+        },
+        Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
+    ));
     
     // Spawn a camera looking at the world
     commands.spawn((
@@ -78,12 +88,31 @@ struct PbrEntity {
 }
 
 fn initialize_world(config: Res<GameConfig>) {
-    println!("Generating world with seed {}", config.seed);
+    println!("[WORLD] Generating world with seed {}", config.seed);
     let settings = WorldGenSettings {
         seed: config.seed,
         chunk_size: config.chunk_size,
         world_width: config.world_width,
         world_height: config.world_height,
     };
-    let _chunks = world::generate_world_chunks(&settings);
+    let chunks = world::generate_world_chunks(&settings);
+    println!("[WORLD] Generated {} chunks successfully", chunks.len());
+}
+
+/// Debug system to log entity counts every 60 frames
+pub fn debug_logging(
+    mut frame_count: Local<u32>,
+    entity_count: Query<Entity>,
+    camera_count: Query<(), With<Camera3d>>,
+    light_count: Query<(), With<DirectionalLight>>,
+) {
+    *frame_count += 1;
+    if *frame_count % 60 == 0 {
+        println!("[DEBUG] Frame {}: entities={}, cameras={}, lights={}",
+            *frame_count,
+            entity_count.iter().count(),
+            camera_count.iter().count(),
+            light_count.iter().count(),
+        );
+    }
 }

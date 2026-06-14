@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub fn setup_lighting(mut commands: Commands) {
+    println!("[LIGHTING] Setting up directional light with shadows...");
     commands.spawn((
         DirectionalLight {
             illuminance: 10000.0,
@@ -9,4 +10,5 @@ pub fn setup_lighting(mut commands: Commands) {
         },
         Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::PI / 2.0)),
     ));
+    println!("[LIGHTING] Directional light spawned successfully");
 }

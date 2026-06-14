@@ -29,11 +29,13 @@ impl Default for Player {
 }
 
 pub fn spawn_player(mut commands: Commands) {
+    println!("[PLAYER] Spawning player at (0, 30, 0)...");
     commands.spawn((
         Player::default(),
         Transform::from_xyz(0.0, 30.0, 0.0),
         Name::new("Player"),
     ));
+    println!("[PLAYER] Player spawned successfully");
 }
 
 pub fn player_movement(
