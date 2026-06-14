@@ -64,39 +64,37 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Spawn a ground plane - rotated to lie flat on the ground (XZ plane)
+    // Ground plane
     commands.spawn((
         Mesh3d(meshes.add(Rectangle::new(256.0, 256.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.5, 0.2))),
         Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
     ));
     
-    // Spawn a red cube in the center so you have something to look at
+    // Colored cubes
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.8, 0.2, 0.2))),
         Transform::from_xyz(0.0, 1.0, 0.0),
     ));
     
-    // Spawn a blue cube to the right
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.2, 0.8))),
         Transform::from_xyz(10.0, 1.0, 0.0),
     ));
     
-    // Spawn a yellow cube to the left
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.9, 0.9, 0.2))),
         Transform::from_xyz(-10.0, 1.0, 0.0),
     ));
     
-    // Spawn a camera looking at the world
+    // Camera
     commands.spawn((
         Camera3d::default(),
         Camera::default(),
-        Transform::from_xyz(0.0, 8.0, 16.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 5.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }
 
@@ -112,22 +110,36 @@ fn initialize_world(config: Res<GameConfig>) {
     println!("[WORLD] Generated {} chunks successfully", chunks.len());
 }
 
-/// Debug system to log entity counts every 60 frames
 pub fn debug_logging(
     mut frame_count: Local<u32>,
+    mut player_spawned: Local<bool>,
     entity_count: Query<Entity>,
-    player_count: Query<(), With<player::Player>>,
+    player_query: Query<(), With<player::Player>>,
     camera_count: Query<(), With<Camera3d>>,
     light_count: Query<(), With<DirectionalLight>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
 ) {
     *frame_count += 1;
-    if *frame_count % 60 == 0 {
-        println!("[DEBUG] Frame {}: entities={}, players={}, cameras={}, lights={}",
-            *frame_count,
+    
+    if !*player_spawned {
+        *player_spawned = true;
+        println!("[DEBUG] Entities: {}, Players: {}, Cameras: {}, Lights: {}",
             entity_count.iter().count(),
-            player_count.iter().count(),
+            player_query.iter().count(),
             camera_count.iter().count(),
             light_count.iter().count(),
         );
+    }
+    
+    if *frame_count % 30 == 0 {
+        let mut keys = Vec::new();
+        if keyboard.pressed(KeyCode::KeyW) { keys.push("W"); }
+        if keyboard.pressed(KeyCode::KeyS) { keys.push("S"); }
+        if keyboard.pressed(KeyCode::KeyA) { keys.push("A"); }
+        if keyboard.pressed(KeyCode::KeyD) { keys.push("D"); }
+        if keyboard.pressed(KeyCode::Space) { keys.push("SPACE"); }
+        println!("[DEBUG] Frame {}: keys=[{}] time={:.1}s", 
+            *frame_count, keys.join(","), time.elapsed_secs());
     }
 }
