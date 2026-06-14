@@ -1,48 +1,44 @@
-use bevy::prelude::*;
+use super::generation::WorldGenSettings;
+use super::block::BlockType;
 
-pub struct WorldChunk {
-    pub x: i32,
-    pub z: i32,
-    pub width: u32,
-    pub height: u32,
-    pub depth: u32,
-    pub blocks: Vec<u32>,
+#[derive(Debug)]
+pub struct BlockChunk {
+    pub blocks: Vec<BlockType>,
+    #[allow(dead_code)]
+    pub size: u32,
 }
 
-impl WorldChunk {
-    pub fn new(x: i32, z: i32, width: u32, height: u32, depth: u32) -> Self {
-        let total_blocks = (width * depth * height) as usize;
+impl BlockChunk {
+    pub fn new(size: u32) -> Self {
         Self {
-            x, z, width, height, depth,
-            blocks: vec![0; total_blocks],
+            blocks: vec![BlockType::Air; (size * size * size) as usize],
+            size,
         }
     }
+}
+
+pub fn generate_world_chunks(_settings: &WorldGenSettings) -> Vec<BlockChunk> {
+    let mut chunks = Vec::new();
+    let chunk_size = _settings.chunk_size.x;
+    let num_chunks = (_settings.world_width / chunk_size) as usize;
     
-    #[inline]
-    pub fn get_block(&self, x: i32, y: i32, z: i32) -> Option<u32> {
-        if x < 0 || x >= self.width as i32 || y < 0 || y >= self.height as i32 || z < 0 || z >= self.depth as i32 {
-            return None;
+    for i in 0..num_chunks {
+        let mut chunk = BlockChunk::new(chunk_size);
+        for z in 0..chunk_size {
+            for x in 0..chunk_size {
+                let global_x = (i as u32) * chunk_size + x;
+                let block = if global_x < 128 {
+                    BlockType::Dirt
+                } else {
+                    BlockType::Stone
+                };
+                let idx = (z * chunk_size * chunk_size + x * chunk_size) as usize;
+                if idx < chunk.blocks.len() {
+                    chunk.blocks[idx] = block;
+                }
+            }
         }
-        let idx = (x + self.x * self.width as i32) as usize
-            + (z + self.z * self.depth as i32) as usize * self.width as usize
-            + y as usize * self.width as usize * self.depth as usize;
-        if idx < self.blocks.len() {
-            Some(self.blocks[idx])
-        } else {
-            None
-        }
+        chunks.push(chunk);
     }
-    
-    #[inline]
-    pub fn set_block(&mut self, x: i32, y: i32, z: i32, block_id: u32) {
-        if x < 0 || x >= self.width as i32 || y < 0 || y >= self.height as i32 || z < 0 || z >= self.depth as i32 {
-            return;
-        }
-        let idx = (x + self.x * self.width as i32) as usize
-            + (z + self.z * self.depth as i32) as usize * self.width as usize
-            + y as usize * self.width as usize * self.depth as usize;
-        if idx < self.blocks.len() {
-            self.blocks[idx] = block_id;
-        }
-    }
+    chunks
 }

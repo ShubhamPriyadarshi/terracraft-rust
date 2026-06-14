@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 mod mob;
 mod player;
 mod rendering;
@@ -49,6 +50,7 @@ fn main() {
         .add_systems(Update, (
             player::player_movement,
             player::camera_control,
+            player::camera_follow,
             world::block_interaction,
             mob::mob_spawner,
             mob::mob_ai,
@@ -71,7 +73,7 @@ fn setup(
         Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
     ));
     
-    // Colored cubes
+    // Colored cubes for reference
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.8, 0.2, 0.2))),
@@ -88,13 +90,6 @@ fn setup(
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.9, 0.9, 0.2))),
         Transform::from_xyz(-10.0, 1.0, 0.0),
-    ));
-    
-    // Camera
-    commands.spawn((
-        Camera3d::default(),
-        Camera::default(),
-        Transform::from_xyz(0.0, 5.0, 15.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }
 

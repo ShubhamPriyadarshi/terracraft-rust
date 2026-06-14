@@ -1,9 +1,7 @@
 //! Block type definitions and registry
-//! Defines all block types in the game with their properties
 
 use bevy::prelude::*;
 
-/// All possible block types in the game
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BlockType {
     Air,
@@ -25,7 +23,6 @@ pub enum BlockType {
 }
 
 impl BlockType {
-    /// Get the display name of the block
     pub fn name(&self) -> &'static str {
         match self {
             BlockType::Air => "Air",
@@ -46,8 +43,7 @@ impl BlockType {
             BlockType::Brick => "Brick",
         }
     }
-    
-    /// Get the color for rendering
+
     pub fn color(&self) -> Color {
         match self {
             BlockType::Air => Color::NONE,
@@ -57,7 +53,7 @@ impl BlockType {
             BlockType::Wood => Color::srgb(0.42, 0.31, 0.17),
             BlockType::Leaves => Color::srgb(0.15, 0.45, 0.10),
             BlockType::Sand => Color::srgb(0.85, 0.78, 0.58),
-            BlockType::Water => Color::rgba(0.0, 0.3, 0.7, 0.6),
+            BlockType::Water => Color::srgba(0.0, 0.3, 0.7, 0.6),
             BlockType::CoalOre => Color::srgb(0.20, 0.20, 0.20),
             BlockType::IronOre => Color::srgb(0.70, 0.65, 0.60),
             BlockType::GoldOre => Color::srgb(0.90, 0.75, 0.20),
@@ -68,8 +64,7 @@ impl BlockType {
             BlockType::Brick => Color::srgb(0.60, 0.25, 0.18),
         }
     }
-    
-    /// Get the hardness (mining time in ticks)
+
     pub fn hardness(&self) -> u32 {
         match self {
             BlockType::Air => 0,
@@ -92,31 +87,6 @@ impl BlockType {
     }
 }
 
-/// Block registry for managing block types
-pub struct BlockRegistry;
-
-impl BlockRegistry {
-    /// Get all non-air block types
-    pub fn all_blocks() -> Vec<BlockType> {
-        vec![
-            BlockType::Dirt,
-            BlockType::Grass,
-            BlockType::Stone,
-            BlockType::Wood,
-            BlockType::Leaves,
-            BlockType::Sand,
-            BlockType::CoalOre,
-            BlockType::IronOre,
-            BlockType::GoldOre,
-            BlockType::DiamondOre,
-            BlockType::Planks,
-            BlockType::Cobblestone,
-            BlockType::Brick,
-        ]
-    }
-}
-
-/// Convert integer ID to block type
 pub fn get_block_type(id: u32) -> BlockType {
     match id {
         0 => BlockType::Air,
@@ -139,7 +109,6 @@ pub fn get_block_type(id: u32) -> BlockType {
     }
 }
 
-/// Convert block type to integer ID
 pub fn block_type_to_id(block: BlockType) -> u32 {
     match block {
         BlockType::Air => 0,
@@ -164,14 +133,14 @@ pub fn block_type_to_id(block: BlockType) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_block_type_conversion() {
         let block = BlockType::Stone;
         let id = block_type_to_id(block);
         assert_eq!(get_block_type(id), block);
     }
-    
+
     #[test]
     fn test_block_colors() {
         assert_ne!(BlockType::Air.color(), BlockType::Stone.color());

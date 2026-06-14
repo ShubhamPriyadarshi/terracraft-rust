@@ -1,80 +1,40 @@
 use bevy::prelude::*;
-use rand::Rng;
 
 #[derive(Component)]
 pub struct Mob {
+    #[allow(dead_code)]
     pub health: u32,
+    #[allow(dead_code)]
     pub max_health: u32,
+    #[allow(dead_code)]
     pub damage: u32,
+    #[allow(dead_code)]
     pub speed: f32,
+    #[allow(dead_code)]
     pub target: Option<Entity>,
-    pub state: MobState,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum MobState {
-    Idle,
-    Chasing,
 }
 
 pub fn mob_spawner(
-    time: Res<Time>,
-    mut timer: Local<f32>,
     mut commands: Commands,
+    time: Res<Time>,
 ) {
-    *timer += time.delta_secs();
-    
-    if *timer > 30.0 {
-        *timer = 0.0;
-        
-        let mut rng = rand::thread_rng();
-        
-        for _ in 0..3 {
-            let x = rng.gen_range(-64.0..64.0);
-            let z = rng.gen_range(-64.0..64.0);
-            let y = 30.0;
-            
-            commands.spawn((
-                Mob {
-                    health: 20,
-                    max_health: 20,
-                    damage: 3,
-                    speed: 3.0,
-                    target: None,
-                    state: MobState::Idle,
-                },
-                Transform::from_xyz(x, y, z),
-                Name::new("Mob"),
-            ));
-        }
+    if time.elapsed_secs().fract() < 0.01 {
+        commands.spawn((
+            Mob {
+                health: 50,
+                max_health: 50,
+                damage: 10,
+                speed: 3.0,
+                target: None,
+            },
+            Transform::from_xyz(5.0, 1.0, 5.0),
+            Name::new("Mob"),
+        ));
     }
 }
 
 pub fn mob_ai(
-    time: Res<Time>,
-    mut mob_query: Query<(&mut Transform, &mut Mob), Without<super::player::Player>>,
-    player_query: Query<&Transform, With<super::player::Player>>,
+    _time: Res<Time>,
+    _mob_query: Query<&Transform, With<Mob>>,
 ) {
-    if let Ok(player_transform) = player_query.get_single() {
-        for (mut transform, mut mob) in mob_query.iter_mut() {
-            let player_pos = player_transform.translation;
-            let mob_pos = transform.translation;
-            let distance = mob_pos.distance(player_pos);
-            
-            if distance < 32.0 {
-                mob.state = MobState::Chasing;
-                let direction = (player_pos - mob_pos).normalize();
-                transform.translation += direction * mob.speed * time.delta_secs();
-            } else {
-                mob.state = MobState::Idle;
-                transform.translation.x += (rand::random::<f32>() - 0.5) * 0.1;
-                transform.translation.z += (rand::random::<f32>() - 0.5) * 0.1;
-            }
-            
-            transform.translation.y -= 10.0 * time.delta_secs();
-            if transform.translation.y < 20.0 {
-                transform.translation.y = 20.0;
-            }
-        }
-    }
 }

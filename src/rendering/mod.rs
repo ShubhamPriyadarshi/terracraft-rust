@@ -1,14 +1,21 @@
 use bevy::prelude::*;
 
 pub fn setup_lighting(mut commands: Commands) {
-    println!("[LIGHTING] Setting up directional light with shadows...");
+    // Directional light (sun)
     commands.spawn((
         DirectionalLight {
-            illuminance: 10000.0,
-            shadows_enabled: true,
+            illuminance: 1000.0,
             ..default()
         },
-        Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::PI / 2.0)),
+        Transform::from_rotation(Quat::from_rotation_x(std::f32::consts::FRAC_PI_4)),
+        Name::new("Sun"),
     ));
-    println!("[LIGHTING] Directional light spawned successfully");
+    
+    // Ambient light so shadows aren't pitch black
+    commands.insert_resource(AmbientLight {
+        color: Color::srgb(0.5, 0.5, 0.6),
+        brightness: 200.0,
+    });
+    
+    println!("[LIGHT] Sun and ambient light added");
 }
