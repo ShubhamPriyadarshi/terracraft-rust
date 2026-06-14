@@ -65,20 +65,38 @@ fn setup(
     mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Spawn a ground plane - rotated to lie flat on the ground (XZ plane)
-    let mesh_handle = meshes.add(Rectangle::new(256.0, 256.0));
-    let mat_handle = standard_materials.add(Color::srgb(0.2, 0.5, 0.2));
-    
     commands.spawn((
-        Mesh3d(mesh_handle),
+        Mesh3d(meshes.add(Rectangle::new(256.0, 256.0))),
         MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.5, 0.2))),
         Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
+    ));
+    
+    // Spawn a red cube in the center so you have something to look at
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
+        MeshMaterial3d(standard_materials.add(Color::srgb(0.8, 0.2, 0.2))),
+        Transform::from_xyz(0.0, 1.0, 0.0),
+    ));
+    
+    // Spawn a blue cube to the right
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
+        MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.2, 0.8))),
+        Transform::from_xyz(10.0, 1.0, 0.0),
+    ));
+    
+    // Spawn a yellow cube to the left
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
+        MeshMaterial3d(standard_materials.add(Color::srgb(0.9, 0.9, 0.2))),
+        Transform::from_xyz(-10.0, 1.0, 0.0),
     ));
     
     // Spawn a camera looking at the world
     commands.spawn((
         Camera3d::default(),
         Camera::default(),
-        Transform::from_xyz(0.0, 32.0, 64.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Transform::from_xyz(0.0, 8.0, 16.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }
 
@@ -98,14 +116,16 @@ fn initialize_world(config: Res<GameConfig>) {
 pub fn debug_logging(
     mut frame_count: Local<u32>,
     entity_count: Query<Entity>,
+    player_count: Query<(), With<player::Player>>,
     camera_count: Query<(), With<Camera3d>>,
     light_count: Query<(), With<DirectionalLight>>,
 ) {
     *frame_count += 1;
     if *frame_count % 60 == 0 {
-        println!("[DEBUG] Frame {}: entities={}, cameras={}, lights={}",
+        println!("[DEBUG] Frame {}: entities={}, players={}, cameras={}, lights={}",
             *frame_count,
             entity_count.iter().count(),
+            player_count.iter().count(),
             camera_count.iter().count(),
             light_count.iter().count(),
         );
