@@ -5,6 +5,7 @@ mod ui;
 mod world;
 
 use bevy::prelude::*;
+use bevy::pbr::MeshMaterial3d;
 use world::WorldGenSettings;
 
 #[derive(Resource)]
@@ -61,15 +62,15 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // Spawn a ground plane - rotated to lie flat on the ground (XZ plane)
-    // Rectangle defaults to XY plane, so we rotate it -90 degrees on X to make it horizontal
+    let mesh_handle = meshes.add(Rectangle::new(256.0, 256.0));
+    let mat_handle = standard_materials.add(Color::srgb(0.2, 0.5, 0.2));
+    
     commands.spawn((
-        PbrEntity {
-            mesh: meshes.add(Rectangle::new(256.0, 256.0)),
-            material: materials.add(Color::srgb(0.2, 0.5, 0.2)),
-        },
+        Mesh3d(mesh_handle),
+        MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.5, 0.2))),
         Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
     ));
     
@@ -79,12 +80,6 @@ fn setup(
         Camera::default(),
         Transform::from_xyz(0.0, 32.0, 64.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
-}
-
-#[derive(Component)]
-struct PbrEntity {
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
 }
 
 fn initialize_world(config: Res<GameConfig>) {
