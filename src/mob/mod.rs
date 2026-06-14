@@ -52,7 +52,7 @@ pub fn mob_spawner(
 
 pub fn mob_ai(
     time: Res<Time>,
-    mut mob_query: Query<(&mut Transform, &mut Mob)>,
+    mut mob_query: Query<(&mut Transform, &mut Mob), Without<super::player::Player>>,
     player_query: Query<&Transform, With<super::player::Player>>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
