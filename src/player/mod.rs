@@ -31,24 +31,20 @@ impl Default for Player {
 }
 
 pub fn spawn_player(mut commands: Commands) {
-    println!("[PLAYER] Spawning player at (0, 4, 0)...");
-    
     let player_entity = commands.spawn((
         Player::default(),
         Transform::from_xyz(0.0, 4.0, 0.0),
         Name::new("Player"),
     )).id();
-    
+
     let camera_entity = commands.spawn((
         Camera3d::default(),
         Camera::default(),
         Transform::from_xyz(0.0, 1.5, 2.0),
         Name::new("PlayerCamera"),
     )).id();
-    
+
     commands.entity(player_entity).add_child(camera_entity);
-    
-    println!("[PLAYER] Player and camera spawned!");
 }
 
 pub fn player_movement(
@@ -111,8 +107,9 @@ pub fn camera_control(
     }
 }
 
+/// Follow the player's position with the camera
 pub fn camera_follow(
-    player_query: Query<&Transform, With<Player>>,
+    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
     mut camera_query: Query<&mut Transform, With<Camera>>,
 ) {
     if let Ok(player_tf) = player_query.get_single() {
