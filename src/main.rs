@@ -41,21 +41,19 @@ fn main() {
         }))
         .insert_resource(GameConfig::default())
         .add_systems(Startup, (
+            rendering::setup_lighting,
             setup,
             initialize_world,
             player::spawn_player,
             ui::spawn_hud,
-            rendering::setup_lighting,
         ))
         .add_systems(Update, (
             player::player_movement,
             player::camera_control,
-            player::camera_follow,
             world::block_interaction,
             mob::mob_spawner,
             mob::mob_ai,
             ui::update_hud,
-            world::day_night_cycle,
             debug_logging,
         ))
         .run();
@@ -66,29 +64,47 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Ground plane
+    // Ground plane - large flat grass surface
     commands.spawn((
         Mesh3d(meshes.add(Rectangle::new(256.0, 256.0))),
-        MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.5, 0.2))),
+        MeshMaterial3d(standard_materials.add(StandardMaterial {
+            base_color: Color::srgb(0.2, 0.6, 0.2),
+            perceptual_roughness: 0.9,
+            ..default()
+        })),
         Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
     ));
-    
-    // Colored cubes for reference
+
+    // Red cube
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
-        MeshMaterial3d(standard_materials.add(Color::srgb(0.8, 0.2, 0.2))),
+        MeshMaterial3d(standard_materials.add(StandardMaterial {
+            base_color: Color::srgb(0.9, 0.2, 0.2),
+            perceptual_roughness: 0.5,
+            ..default()
+        })),
         Transform::from_xyz(0.0, 1.0, 0.0),
     ));
-    
+
+    // Blue cube
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
-        MeshMaterial3d(standard_materials.add(Color::srgb(0.2, 0.2, 0.8))),
+        MeshMaterial3d(standard_materials.add(StandardMaterial {
+            base_color: Color::srgb(0.2, 0.2, 0.9),
+            perceptual_roughness: 0.5,
+            ..default()
+        })),
         Transform::from_xyz(10.0, 1.0, 0.0),
     ));
-    
+
+    // Yellow cube
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::new(2.0, 2.0, 2.0))),
-        MeshMaterial3d(standard_materials.add(Color::srgb(0.9, 0.9, 0.2))),
+        MeshMaterial3d(standard_materials.add(StandardMaterial {
+            base_color: Color::srgb(0.9, 0.9, 0.2),
+            perceptual_roughness: 0.5,
+            ..default()
+        })),
         Transform::from_xyz(-10.0, 1.0, 0.0),
     ));
 }
@@ -116,7 +132,7 @@ pub fn debug_logging(
     time: Res<Time>,
 ) {
     *frame_count += 1;
-    
+
     if !*player_spawned {
         *player_spawned = true;
         println!("[DEBUG] Entities: {}, Players: {}, Cameras: {}, Lights: {}",
@@ -126,7 +142,7 @@ pub fn debug_logging(
             light_count.iter().count(),
         );
     }
-    
+
     if *frame_count % 30 == 0 {
         let mut keys = Vec::new();
         if keyboard.pressed(KeyCode::KeyW) { keys.push("W"); }
@@ -134,7 +150,7 @@ pub fn debug_logging(
         if keyboard.pressed(KeyCode::KeyA) { keys.push("A"); }
         if keyboard.pressed(KeyCode::KeyD) { keys.push("D"); }
         if keyboard.pressed(KeyCode::Space) { keys.push("SPACE"); }
-        println!("[DEBUG] Frame {}: keys=[{}] time={:.1}s", 
+        println!("[DEBUG] Frame {}: keys=[{}] time={:.1}s",
             *frame_count, keys.join(","), time.elapsed_secs());
     }
 }

@@ -15,16 +15,3 @@ pub fn block_interaction(
         // TODO: Raycast to find block at cursor
     }
 }
-
-/// Day/night cycle that adjusts the directional light
-pub fn day_night_cycle(
-    time: Res<Time>,
-    mut light_query: Query<&mut DirectionalLight>,
-    mut ambient: ResMut<AmbientLight>,
-) {
-    let cycle = (time.elapsed_secs() * 0.05).sin();
-    for mut light in light_query.iter_mut() {
-        light.illuminance = (400.0 + cycle * 400.0) as f32;
-    }
-    ambient.brightness = (100.0 + cycle * 100.0) as f32;
-}

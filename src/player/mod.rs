@@ -18,8 +18,8 @@ pub struct Player {
 impl Default for Player {
     fn default() -> Self {
         Self {
-            speed: 10.0,
-            jump_force: 10.0,
+            speed: 12.0,
+            jump_force: 12.0,
             health: 100,
             max_health: 100,
             is_on_ground: false,
@@ -39,12 +39,19 @@ pub fn spawn_player(mut commands: Commands) {
 
     let camera_entity = commands.spawn((
         Camera3d::default(),
-        Camera::default(),
-        Transform::from_xyz(0.0, 1.5, 2.0),
+        Camera {
+            order: 0,
+            is_active: true,
+            ..default()
+        },
+        Transform::from_xyz(0.0, 1.6, 0.0),
         Name::new("PlayerCamera"),
     )).id();
 
     commands.entity(player_entity).add_child(camera_entity);
+
+    println!("[PLAYER] Player spawned at (0, 4, 0)");
+    println!("[PLAYER] Camera attached as child with local offset (0, 1.6, 0)");
 }
 
 pub fn player_movement(
@@ -53,37 +60,47 @@ pub fn player_movement(
     mut player_query: Query<(&mut Transform, &mut Player)>,
 ) {
     for (mut transform, mut player) in player_query.iter_mut() {
-        let mut direction = Vec3::ZERO;
-        
+        let forward = Vec3::new(
+            -player.yaw.sin(),
+            0.0,
+            -player.yaw.cos(),
+        );
+        let right = Vec3::new(
+            -player.yaw.cos(),
+            0.0,
+            player.yaw.sin(),
+        );
+
+        let mut input_dir = Vec3::ZERO;
         if keyboard.pressed(KeyCode::KeyW) || keyboard.pressed(KeyCode::ArrowUp) {
-            direction += Vec3::Z;
+            input_dir += forward;
         }
         if keyboard.pressed(KeyCode::KeyS) || keyboard.pressed(KeyCode::ArrowDown) {
-            direction -= Vec3::Z;
+            input_dir -= forward;
         }
         if keyboard.pressed(KeyCode::KeyA) || keyboard.pressed(KeyCode::ArrowLeft) {
-            direction -= Vec3::X;
+            input_dir -= right;
         }
         if keyboard.pressed(KeyCode::KeyD) || keyboard.pressed(KeyCode::ArrowRight) {
-            direction += Vec3::X;
+            input_dir += right;
         }
-        
-        if direction.length() > 0.0 {
-            direction = direction.normalize();
+
+        if input_dir.length() > 0.0 {
+            input_dir = input_dir.normalize();
         }
-        
-        player.velocity.y -= 20.0 * time.delta_secs();
-        
+
+        player.velocity.y -= 25.0 * time.delta_secs();
+
         if keyboard.pressed(KeyCode::Space) && player.is_on_ground {
             player.velocity.y = player.jump_force;
             player.is_on_ground = false;
         }
-        
-        player.velocity.x = direction.x * player.speed;
-        player.velocity.z = direction.z * player.speed;
-        
+
+        player.velocity.x = input_dir.x * player.speed;
+        player.velocity.z = input_dir.z * player.speed;
+
         transform.translation += player.velocity * time.delta_secs();
-        
+
         if transform.translation.y < 1.0 {
             transform.translation.y = 1.0;
             player.velocity.y = 0.0;
@@ -102,19 +119,7 @@ pub fn camera_control(
             player.pitch -= event.delta.y * 0.003;
             player.pitch = player.pitch.clamp(-1.4, 1.4);
         }
-        
-        transform.rotation = Quat::from_euler(EulerRot::YXZ, player.yaw, player.pitch, 0.0);
-    }
-}
 
-/// Follow the player's position with the camera
-pub fn camera_follow(
-    player_query: Query<&Transform, (With<Player>, Without<Camera>)>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
-) {
-    if let Ok(player_tf) = player_query.get_single() {
-        for mut camera_tf in camera_query.iter_mut() {
-            camera_tf.translation = player_tf.translation + Vec3::new(0.0, 1.5, 2.0);
-        }
+        transform.rotation = Quat::from_euler(EulerRot::YXZ, player.yaw, player.pitch, 0.0);
     }
 }
